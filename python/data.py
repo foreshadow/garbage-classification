@@ -1,4 +1,5 @@
 import glob
+import os
 
 import tensorflow as tf
 
@@ -15,13 +16,14 @@ def preprocess_image(path):
     return image
 
 
-def Garbage(root_dir, batch_size=32, shuffle=True):
+def Garbage(list_file, batch_size=32, shuffle=False):
+    root_dir = os.path.dirname(list_file)
     list_ = []
-    for file in glob.glob(f'{root_dir}/train_data/*.txt'):
-        with open(file) as f:
-            path, label = f.readline().split(', ')
+    with open(list_file) as f:
+        for line in f.readlines():
+            path, label = line.split(', ')
             path = f'{root_dir}/train_data/{path}'
-        list_.append((str(path), int(label)))
+            list_.append((str(path), int(label)))
 
     paths, labels = zip(*list_)
     path_ds = tf.data.Dataset.from_tensor_slices(list(paths))
