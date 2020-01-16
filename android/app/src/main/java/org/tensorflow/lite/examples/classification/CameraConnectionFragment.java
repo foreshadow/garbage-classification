@@ -60,6 +60,7 @@ import java.util.List;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import org.tensorflow.lite.examples.classification.customview.AutoFitTextureView;
+import org.tensorflow.lite.examples.classification.customview.AutoFitTextureView_2;
 import org.tensorflow.lite.examples.classification.env.Logger;
 
 public class CameraConnectionFragment extends Fragment {
@@ -185,6 +186,8 @@ public class CameraConnectionFragment extends Fragment {
         }
       };
 
+
+
   @SuppressLint("ValidFragment")
   private CameraConnectionFragment(
       final ConnectionCallback connectionCallback,
@@ -281,7 +284,7 @@ public class CameraConnectionFragment extends Fragment {
 
   @Override
   public void onViewCreated(final View view, final Bundle savedInstanceState) {
-    textureView = (AutoFitTextureView) view.findViewById(R.id.texture);
+    textureView = view.findViewById(R.id.texture);
   }
 
   @Override
