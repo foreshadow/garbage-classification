@@ -148,12 +148,12 @@ public class MultiBoxTracker {
 
       final String labelString =
           !TextUtils.isEmpty(recognition.title)
-              ? String.format("%s %.2f", recognition.title, (100 * recognition.detectionConfidence))
-              : String.format("%.2f", (100 * recognition.detectionConfidence));
+              ? String.format("%s", recognition.title)
+              : String.format("");
       //            borderedText.drawText(canvas, trackedPos.left + cornerSize, trackedPos.top,
       // labelString);
       borderedText.drawText(
-          canvas, trackedPos.left + cornerSize, trackedPos.top, labelString + "%", boxPaint);
+          canvas, trackedPos.left + cornerSize, trackedPos.top, labelString, boxPaint);
     }
   }
 
@@ -200,7 +200,15 @@ public class MultiBoxTracker {
       trackedRecognition.detectionConfidence = potential.first;
       trackedRecognition.location = new RectF(potential.second.first.getLocation());
       trackedRecognition.title = potential.second.second.getTitle();
-      trackedRecognition.color = COLORS[trackedObjects.size()];
+      if(potential.second.second.getTitle().substring(0, 4).equals("其他垃圾"))
+        trackedRecognition.color = COLORS[1];
+      else if(potential.second.second.getTitle().substring(0, 4).equals("厨余垃圾"))
+        trackedRecognition.color = COLORS[2];
+      else if(potential.second.second.getTitle().substring(0, 4).equals("可回收物"))
+        trackedRecognition.color = COLORS[0];
+      else if(potential.second.second.getTitle().substring(0, 4).equals("有害垃圾"))
+        trackedRecognition.color = COLORS[6];
+
       trackedObjects.add(trackedRecognition);
 
       if (trackedObjects.size() >= COLORS.length) {

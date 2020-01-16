@@ -173,6 +173,7 @@ public class ClassifierActivity extends CameraActivity implements OnImageAvailab
 
     tracker.setFrameConfiguration(previewWidth, previewHeight, sensorOrientation);
 
+//    testImg = findViewById(R.id.testImg);
 
   }
 
@@ -221,6 +222,7 @@ public class ClassifierActivity extends CameraActivity implements OnImageAvailab
               int h = croppedBitmap.getHeight();
 
               final List<Classifier_2.Recognition> results = detector.recognizeImage(croppedBitmap);
+              final List<Bitmap> cut_img = new ArrayList<>();
 
               lastProcessingTimeMs = SystemClock.uptimeMillis() - startTime;
 
@@ -266,10 +268,10 @@ public class ClassifierActivity extends CameraActivity implements OnImageAvailab
                   int width = (int)(location.right - location.left);
                   int height = (int)(location.bottom - location.top);
 
-                  x -= width / 3;
-                  y -= height / 3;
-                  width += width * 2 / 3;
-                  height += height * 2 / 3;
+                  x -= width / 5;
+                  y -= height / 5;
+                  width += width * 2 / 5;
+                  height += height * 2 / 5;
 
                   if( x < 0 )
                     x = 0;
@@ -282,36 +284,49 @@ public class ClassifierActivity extends CameraActivity implements OnImageAvailab
 
                   // ----
                   Bitmap target;
-                  if(detected){
+//                  if(detected){
                     target = Bitmap.createBitmap(rgbFrameBitmap, x, y, width, height);
-                  }else{
-                    target = rgbFrameBitmap;
-                  }
-                  // ----
+//                  }else{
+//                    target = rgbFrameBitmap;
+//                    width = rgbFrameBitmap.getWidth();
+//                    height = rgbFrameBitmap.getHeight();
+//                  }
 
+                  int l = width > height ?width : height;
+                  int p_w = l - width;
+                  int p_h = l - height;
+
+
+
+                  Bitmap outputimage = Bitmap.createBitmap(l,l, Bitmap.Config.ARGB_8888);
+                  Canvas can = new Canvas(outputimage);
+                  can.drawARGB(0xFF,0x00,0x00,0x00); //This represents black color
+                  can.drawBitmap(target, p_w/2, p_h/2, null);
+
+                  Bitmap resizedBitmap = Bitmap.createScaledBitmap(
+                          outputimage, 192, 192, false);
+
+                  Matrix matrix = new Matrix();
+
+                  matrix.postRotate(90);
+                  Bitmap rotatedBitmap = Bitmap.createBitmap(resizedBitmap, 0, 0, resizedBitmap.getWidth(), resizedBitmap.getHeight(), matrix, true);
                   //------
 //                testImg.setImageBitmap(target);
                   //--------
 
-                  final List<Classifier.Recognition> tmp_clf_results = classifier.recognizeImage(target, sensorOrientation);  // 123
+                  final List<Classifier.Recognition> tmp_clf_results = classifier.recognizeImage(rotatedBitmap, sensorOrientation);  // 123
+//                  tmp_clf_results.sort();
 
-                  clf_results.add(tmp_clf_results.get(0));
+                  if (location != null && result.getConfidence() >= minimumConfidence) {
+                    clf_results.add(tmp_clf_results.get(0));
+                  }
+
+
 
                   lastProcessingTimeMs = SystemClock.uptimeMillis() - startTime;
-                  LOGGER.i("Detect: %s", tmp_clf_results);
+                  LOGGER.i("clf result: %s", tmp_clf_results);
 
-                  runOnUiThread(
-                          new Runnable() {
-                            @Override
-                            public void run() {
-                              showResultsInBottomSheet(clf_results);
-                              showFrameInfo(previewWidth + "x" + previewHeight);
-                              showCropInfo(imageSizeX + "x" + imageSizeY);
-                              showCameraResolution(cropSize + "x" + cropSize);
-                              showRotationInfo(String.valueOf(sensorOrientation));
-                              showInference(lastProcessingTimeMs + "ms");
-                            }
-                          });
+                  cut_img.add(target);
                 }
 
                 // ----
@@ -319,6 +334,19 @@ public class ClassifierActivity extends CameraActivity implements OnImageAvailab
                 if( cnt >= 3 )
                   break;
               }
+
+              runOnUiThread(
+                      new Runnable() {
+                        @Override
+                        public void run() {
+                          showResultsInBottomSheet(clf_results, cut_img);
+                          showFrameInfo(previewWidth + "x" + previewHeight);
+                          showCropInfo(imageSizeX + "x" + imageSizeY);
+                          showCameraResolution(cropSize + "x" + cropSize);
+                          showRotationInfo(String.valueOf(sensorOrientation));
+                          showInference(lastProcessingTimeMs + "ms");
+                        }
+                      });
 
               tracker.trackResults(mappedRecognitions, currTimestamp, clf_results);
               trackingOverlay.postInvalidate();
@@ -337,12 +365,6 @@ public class ClassifierActivity extends CameraActivity implements OnImageAvailab
             }catch (Exception e ){
             }
 
-            try {
-
-
-            }catch (Exception e){
-              LOGGER.e(e,"ERROR!!");
-            }
             readyForNextImage();
 
           }

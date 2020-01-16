@@ -20,6 +20,9 @@ import android.Manifest;
 import android.app.Fragment;
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.Matrix;
 import android.hardware.Camera;
 import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraCharacteristics;
@@ -88,6 +91,9 @@ public abstract class CameraActivity extends AppCompatActivity
       recognitionValueTextView,
       recognition1ValueTextView,
       recognition2ValueTextView;
+  protected ImageView recognitionValueImg,
+                      recognitionValueImg1,
+                      recognitionValueImg2;
   protected TextView frameValueTextView,
       cropValueTextView,
       cameraResolutionTextView,
@@ -530,42 +536,63 @@ public abstract class CameraActivity extends AppCompatActivity
   }
 
   @UiThread
-  protected void showResultsInBottomSheet(List<Recognition> results) {
-    if (results != null && results.size() >= 3) {
-      Recognition recognition = results.get(0);
-      if (recognition != null) {
-        if (recognition.getTitle() != null) recognitionTextView.setText(recognition.getTitle());
-        if (recognition.getConfidence() != null)
-          recognitionValueTextView.setText(
-              String.format("%.2f", (10000 * recognition.getConfidence())) + "%");
-        ImageView classify_res = findViewById(R.id.classfication_res);
-        if (recognition.getTitle().substring(0,4).equals("可回收物")){
-          classify_res.setImageResource(R.drawable.recyclable);
-        }else if(recognition.getTitle().substring(0,4).equals("厨余垃圾")){
-          classify_res.setImageResource(R.drawable.kitchen);
-        }else if(recognition.getTitle().substring(0,4).equals("有害垃圾")){
-          classify_res.setImageResource(R.drawable.harmful);
+  protected void showResultsInBottomSheet(List<Recognition> results, final List<Bitmap> cut_img) {
+      if (results != null && cut_img != null) {
+
+        if(results.size() >= 1 && cut_img.size() >= 1){
+          Recognition recognition = results.get(0);
+
+          if (recognition != null && cut_img.get(0) != null) {
+            if (recognition.getTitle() != null) recognitionTextView.setText(recognition.getTitle());
+            if (recognition.getConfidence() != null) {
+              recognitionValueTextView.setText(
+                      String.format("%.2f", (10000 * recognition.getConfidence())) + "%");
+            }
+          }
+
+          if(results.size() >= 2 && cut_img.size() >= 2){
+            Recognition recognition1 = results.get(1);
+
+            if (recognition1 != null && cut_img.get(1) != null) {
+              if (recognition1.getTitle() != null)
+                recognition1TextView.setText(recognition1.getTitle());
+              if (recognition1.getConfidence() != null)
+                recognition1ValueTextView.setText(
+                        String.format("%.2f", (10000 * recognition1.getConfidence())) + "%");
+            }else{
+              recognition1TextView.setText("");
+              recognition1ValueTextView.setText("");
+              recognition2TextView.setText("");
+              recognition2ValueTextView.setText("");
+            }
+
+            if(results.size() >= 3 && cut_img.size() >= 3){
+              Recognition recognition2 = results.get(2);
+              if (recognition2 != null && cut_img.get(2) != null) {
+                if (recognition2.getTitle() != null)
+                  recognition2TextView.setText(recognition2.getTitle());
+                if (recognition2.getConfidence() != null)
+                  recognition2ValueTextView.setText(
+                          String.format("%.2f", (10000 * recognition2.getConfidence())) + "%");
+              }
+            }else{
+              recognition2TextView.setText("");
+              recognition2ValueTextView.setText("");
+            }
+          }
+
+
         }else{
-          classify_res.setImageResource(R.drawable.other);
+          recognitionTextView.setText("没有垃圾！");
+          recognitionValueTextView.setText("");
+          recognition1TextView.setText("");
+          recognition1ValueTextView.setText("");
+          recognition2TextView.setText("");
+          recognition2ValueTextView.setText("");
         }
-      }
 
-      Recognition recognition1 = results.get(1);
-      if (recognition1 != null) {
-        if (recognition1.getTitle() != null) recognition1TextView.setText(recognition1.getTitle());
-        if (recognition1.getConfidence() != null)
-          recognition1ValueTextView.setText(
-              String.format("%.2f", (10000 * recognition1.getConfidence())) + "%");
-      }
 
-      Recognition recognition2 = results.get(2);
-      if (recognition2 != null) {
-        if (recognition2.getTitle() != null) recognition2TextView.setText(recognition2.getTitle());
-        if (recognition2.getConfidence() != null)
-          recognition2ValueTextView.setText(
-              String.format("%.2f", (10000 * recognition2.getConfidence())) + "%");
       }
-    }
   }
 
   protected void showFrameInfo(String frameInfo) {

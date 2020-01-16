@@ -1,0 +1,4 @@
+Reference
+
+TensorflowLite in Android APP:
+https://github.com/tensorflow/examples/tree/master/lite/examples
